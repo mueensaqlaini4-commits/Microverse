@@ -1,0 +1,244 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#070816">
+<title>MICROVERSE — Living Worlds</title>
+<style>
+*{box-sizing:border-box}
+:root{--cyan:#68f5ff;--purple:#9c76ff;--bg:#070816}
+body{margin:0;background:var(--bg);color:#f4f5ff;font-family:system-ui,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer;color:white;border:1px solid #343454;background:#14152c;border-radius:13px;padding:12px}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.app{max-width:1000px;margin:auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-size:20px;font-weight:900;letter-spacing:3px}
+.logo span{color:var(--cyan)}
+.sub{color:#999dbd;font-size:12px;letter-spacing:2px}
+.energy{border:1px solid #353653;padding:10px 14px;border-radius:14px;color:#ffe58a;font-weight:bold}
+.hero{margin-top:22px;display:flex;justify-content:space-between;align-items:end;gap:12px}
+h1{font-size:clamp(27px,6vw,45px);margin:6px 0}
+p{color:#a8abc7;line-height:1.6}
+.world{position:relative;margin-top:18px;height:350px;border:1px solid #303154;border-radius:25px;overflow:hidden;background:radial-gradient(ellipse at 50% 80%,#29235a 0%,#11142e 43%,#080918 80%)}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.planet{position:absolute;left:50%;top:48%;width:170px;height:170px;transform:translate(-50%,-50%);border-radius:50%;cursor:pointer;overflow:hidden;background:radial-gradient(circle at 30% 25%,#c1ffff 0,#55cbdc 12%,#3967b4 40%,#382465 72%,#111126 100%);box-shadow:inset -23px -13px 35px #050616aa,0 0 35px #5fe9ff55,0 0 85px #8866ff22;transition:filter .5s,background 1s}
+.planet:before{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-linear-gradient(160deg,transparent 0 19px,#ffffff16 20px 24px,transparent 25px 42px);animation:rotate 18s linear infinite}
+.planet:after{content:"";position:absolute;inset:-9px;border:2px solid #8cecff55;border-radius:50%;transform:rotate(-20deg) scaleY(.29);box-shadow:0 0 12px #64e8ff44}
+@keyframes rotate{to{background-position:0 300px}}
+.planet.pulse{filter:brightness(1.6)}
+.world-label{position:absolute;bottom:14px;left:15px;font-size:12px;color:#b8c8e8;letter-spacing:1px}
+.tap-label{position:absolute;top:15px;left:0;right:0;text-align:center;font-size:12px;color:#b7b9dc}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.stat,.panel{border:1px solid #2d2e4c;background:#0d0e20;border-radius:17px;padding:15px}
+.stat small{color:#9b9fbd;display:block;font-size:11px}
+.stat strong{font-size:23px;display:block;margin-top:5px}
+.section-title{font-size:18px;margin:25px 0 12px}
+.actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.primary{background:linear-gradient(120deg,#176b85,#6043a9);border:0;font-weight:700}
+.missions{display:grid;gap:10px}
+.mission{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mission strong{font-size:14px}
+.mission p{font-size:12px;margin:4px 0}
+.worlds{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.biome{min-height:115px;text-align:left}
+.biome b,.biome small{display:block}
+.biome b{margin:8px 0}
+.biome small{color:#a6a8c4}
+.biome.active{border-color:var(--cyan);box-shadow:0 0 16px #5fe9ff15}
+.footer{text-align:center;color:#6f7397;font-size:11px;padding:25px 0}
+#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#222542;border:1px solid #555b83;border-radius:14px;padding:12px 18px;z-index:10;display:none;max-width:90%;text-align:center}
+@media(min-width:650px){.layout{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.left,.right{min-width:0}.world{height:390px}.actions{grid-template-columns:1fr 1fr}}
+@media(max-width:380px){.app{padding:12px}.planet{width:145px;height:145px}.stats{gap:6px}.stat{padding:10px}.stat strong{font-size:19px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <div class="logo">MICRO<span>VERSE</span></div>
+    <div class="sub">YOUR UNIVERSE. YOUR RULES.</div>
+  </div>
+  <div class="energy">✦ <span id="energy">0</span> EN</div>
+</header>
+
+<div class="hero">
+  <div>
+    <div class="sub">EXPLORATION SECTOR 01</div>
+    <h1>Build a living world.</h1>
+    <p style="margin:0">Every action makes your universe evolve.</p>
+  </div>
+</div>
+
+<div class="layout">
+<div class="left">
+  <div class="world" id="world">
+    <canvas id="stars"></canvas>
+    <div class="tap-label">TAP YOUR PLANET TO HARVEST ENERGY</div>
+    <div class="planet" id="planet" role="button" tabindex="0" aria-label="Harvest energy from planet"></div>
+    <div class="world-label">◉ LIVE WORLD SIMULATION</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><small>WORLD LEVEL</small><strong id="level">1</strong></div>
+    <div class="stat"><small>ENERGY HARVESTED</small><strong id="total">0</strong></div>
+    <div class="stat"><small>MISSIONS DONE</small><strong id="done">0/3</strong></div>
+  </div>
+
+  <div class="section-title">⚡ World controls</div>
+  <div class="actions">
+    <button class="primary" id="harvest">✦ Harvest Energy</button>
+    <button id="evolve">⬆ Evolve World</button>
+    <button id="explore">◎ Explore Sector</button>
+    <button id="reset">↻ Reset World</button>
+  </div>
+</div>
+
+<div class="right">
+  <div class="section-title">◈ Active missions</div>
+  <div class="missions" id="missions"></div>
+
+  <div class="section-title">✧ Discover biomes</div>
+  <div class="worlds" id="worlds"></div>
+  <div class="panel" style="margin-top:12px">
+    <strong>World status</strong>
+    <p id="status" style="font-size:13px;margin-bottom:0">Your universe is waiting to evolve.</p>
+  </div>
+</div>
+</div>
+<div class="footer">MICROVERSE • LOCAL WORLD SAVE ENABLED<br>Your progress is saved on this device.</div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const biomes=[
+ {name:"Cosmic",icon:"🌌",cost:0,colors:["#c1ffff","#55cbdc","#382465"],desc:"Your origin world"},
+ {name:"Crystal",icon:"💎",cost:100,colors:["#ffffff","#65f5db","#285aa8"],desc:"Shimmering crystal fields"},
+ {name:"Volcanic",icon:"🌋",cost:250,colors:["#ffe29b","#ff683e","#631b43"],desc:"A world of living fire"},
+ {name:"Ice World",icon:"❄️",cost:500,colors:["#ffffff","#8edbff","#334d9e"],desc:"Frozen alien landscapes"}
+];
+const missions=[
+ {name:"First Contact",desc:"Harvest 10 energy",goal:10,reward:25,check:s=>s.total>=10},
+ {name:"World Builder",desc:"Reach world level 3",goal:3,reward:50,check:s=>s.level>=3},
+ {name:"Explorer",desc:"Explore 5 sectors",goal:5,reward:40,check:s=>s.explores>=5}
+];
+const fresh=()=>({energy:0,total:0,level:1,explores:0,biome:0,unlocked:[0],completed:[],clicks:0});
+let state;
+try{state=Object.assign(fresh(),JSON.parse(localStorage.getItem("microverse-save")||"{}"))}
+catch(e){state=fresh()}
+state.unlocked=Array.isArray(state.unlocked)?state.unlocked:[0];
+state.completed=Array.isArray(state.completed)?state.completed:[];
+let toastTimer;
+function notify(msg){
+ const t=$("toast");t.textContent=msg;t.style.display="block";
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display="none",2200);
+}
+function save(){
+ try{localStorage.setItem("microverse-save",JSON.stringify(state))}
+ catch(e){notify("Device storage is unavailable.")}
+}
+function render(){
+ $("energy").textContent=state.energy;
+ $("total").textContent=state.total;
+ $("level").textContent=state.level;
+ $("done").textContent=state.completed.length+"/3";
+ $("status").textContent=state.level>=5
+  ?"Your universe has reached a higher evolution stage!"
+  :"Level "+state.level+" universe • "+(5-state.level)+" levels until the next major milestone.";
+ const b=biomes[state.biome];
+ $("planet").style.background=
+  `radial-gradient(circle at 30% 25%,${b.colors[0]} 0,${b.colors[1]} 27%,${b.colors[2]} 75%,#080816 100%)`;
+ $("planet").style.boxShadow=`inset -23px -13px 35px #050616aa,0 0 35px ${b.colors[1]}66,0 0 85px ${b.colors[2]}55`;
+ $("missions").innerHTML=missions.map((m,i)=>{
+  const done=state.completed.includes(i);
+  const progress=i===0?Math.min(state.total,m.goal):i===1?Math.min(state.level,m.goal):Math.min(state.explores,m.goal);
+  return `<div class="panel mission"><div><strong>${done?"✓ ":""}${m.name}</strong><p>${m.desc}<br>${progress}/${m.goal} • Reward: ${m.reward} EN</p></div><button data-mission="${i}" ${done||!m.check(state)?"disabled":""}>${done?"Done":"Claim"}</button></div>`;
+ }).join("");
+ $("worlds").innerHTML=biomes.map((w,i)=>{
+  const unlocked=state.unlocked.includes(i);
+  return `<button class="biome ${state.biome===i?"active":""}" data-biome="${i}" ${!unlocked?"":"aria-pressed=\""+(state.biome===i)+"\""}><span style="font-size:24px">${w.icon}</span><b>${w.name} ${state.biome===i?"✓":""}</b><small>${unlocked?w.desc:"🔒 Unlock: "+w.cost+" EN"}</small></button>`;
+ }).join("");
+ save();
+}
+function harvest(){
+ const gain=5+state.level*2;
+ state.energy+=gain;state.total+=gain;state.clicks++;
+ $("planet").classList.add("pulse");
+ setTimeout(()=>$("planet").classList.remove("pulse"),180);
+ render();notify("+"+gain+" energy harvested!");
+}
+function evolve(){
+ const cost=state.level*50;
+ if(state.energy<cost){notify("Need "+cost+" energy to evolve.");return}
+ state.energy-=cost;state.level++;
+ render();notify("World evolved to level "+state.level+"!");
+}
+function explore(){
+ const cost=10;
+ if(state.energy<cost){notify("Explore karne ke liye 10 energy chahiye.");return}
+ state.energy-=cost;state.explores++;
+ const finds=["A hidden star cluster discovered!","Ancient signals detected!","A new cosmic route found!","A mysterious nebula discovered!"];
+ render();notify(finds[Math.floor(Math.random()*finds.length)]);
+}
+function claimMission(i){
+ const m=missions[i];
+ if(!m||state.completed.includes(i)||!m.check(state))return;
+ state.completed.push(i);state.energy+=m.reward;
+ render();notify(m.name+" completed! +"+m.reward+" energy");
+}
+function chooseBiome(i){
+ const b=biomes[i];if(!b)return;
+ if(!state.unlocked.includes(i)){
+  if(state.energy<b.cost){notify("Need "+b.cost+" energy to unlock "+b.name+".");return}
+  state.energy-=b.cost;state.unlocked.push(i);
+ }
+ state.biome=i;render();notify(b.name+" biome activated!");
+}
+$("harvest").addEventListener("click",harvest);
+$("planet").addEventListener("click",harvest);
+$("planet").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();harvest()}});
+$("evolve").addEventListener("click",evolve);
+$("explore").addEventListener("click",explore);
+$("missions").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-mission]");
+ if(btn)claimMission(Number(btn.dataset.mission));
+});
+$("worlds").addEventListener("click",e=>{
+ const btn=e.target.closest("[data-biome]");
+ if(btn)chooseBiome(Number(btn.dataset.biome));
+});
+$("reset").addEventListener("click",()=>{
+ if(confirm("Reset your entire Microverse? This cannot be undone.")){
+  state=fresh();render();notify("A new universe has been created.");
+ }
+});
+
+// Animated star field: lightweight canvas, suitable for mobile.
+const canvas=$("stars"),ctx=canvas.getContext("2d");
+let stars=[],w=0,h=0,raf=0;
+function resize(){
+ const r=$("world").getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
+ w=r.width;h=r.height;canvas.width=w*d;canvas.height=h*d;
+ ctx.setTransform(d,0,0,d,0,0);
+ stars=Array.from({length:Math.min(100,Math.floor(w/4))},()=>({
+  x:Math.random()*w,y:Math.random()*h,
+  r:Math.random()*1.4+.3,a:Math.random()*.7+.2,
+  speed:Math.random()*.22+.04
+ }));
+}
+function draw(){
+ ctx.clearRect(0,0,w,h);
+ for(const s of stars){
+  s.y+=s.speed;if(s.y>h){s.y=0;s.x=Math.random()*w}
+  ctx.globalAlpha=s.a*(.7+.3*Math.sin(Date.now()/700+s.x));
+  ctx.fillStyle="#bcefff";ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;raf=requestAnimationFrame(draw);
+}
+window.addEventListener("resize",resize);
+resize();draw();render();
+</script>
+</body>
+</html>
