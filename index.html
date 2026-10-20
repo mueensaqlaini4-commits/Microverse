@@ -1,0 +1,440 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050611">
+<title>MICROVERSE | Gesture Universe</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050611;color:#f4f5ff;font-family:system-ui,sans-serif}
+header{padding:17px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.logo{font-size:20px;font-weight:900;letter-spacing:3px}
+.logo span{color:#66f5ff}
+#status{font-size:11px;color:#7df7c8}
+main{max-width:1000px;margin:auto;padding:0 12px 25px}
+.scene{height:min(60vh,510px);min-height:320px;position:relative;overflow:hidden;border:1px solid #282b4d;border-radius:23px;background:radial-gradient(ellipse,#161e46,#070918 72%)}
+#view{width:100%;height:100%;display:block;touch-action:none}
+.overlay{position:absolute;pointer-events:none;left:14px;top:14px;font-size:11px;color:#aabce9;line-height:1.9}
+.overlay b{color:#7ef5ff}
+.camera{position:absolute;right:10px;top:10px;width:105px;height:80px;object-fit:cover;border-radius:12px;transform:scaleX(-1);border:1px solid #555777;background:#101126;display:none}
+#handStatus{position:absolute;bottom:12px;left:12px;background:#10152cdd;border:1px solid #343a5b;padding:8px 10px;border-radius:10px;font-size:11px;color:#bcefff}
+h2{font-size:16px;margin:20px 3px 10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+button{color:#f7f7ff;background:#11152a;border:1px solid #303657;border-radius:12px;padding:12px;font:inherit;cursor:pointer}
+button:active{transform:scale(.97)}
+.primary{background:linear-gradient(120deg,#087c9b,#6340bd);border:0}
+.active{border-color:#63f4ff;box-shadow:0 0 14px #39d9ff20}
+.planets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.planets button{font-size:12px;padding:12px 3px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row button{flex:1;min-width:100px}
+p{font-size:12px;color:#a2a9ca;line-height:1.6}
+small{color:#a2a9ca}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#171d38;border:1px solid #4d6388;border-radius:12px;padding:11px 15px;display:none;z-index:5;font-size:13px;max-width:90%}
+footer{text-align:center;padding:22px;color:#747b9e;font-size:11px}
+@media(min-width:700px){.layout{display:grid;grid-template-columns:1.4fr .8fr;gap:16px}.scene{height:520px}.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">MICRO<span>VERSE</span></div>
+    <small>GESTURE CONTROL UNIVERSE</small>
+  </div>
+  <div id="status">● 3D ENGINE READY</div>
+</header>
+
+<main>
+<div class="layout">
+<section>
+  <div class="scene">
+    <canvas id="view"></canvas>
+    <div class="overlay">
+      <b>MICROVERSE / LIVE</b><br>
+      ALL WORLDS UNLOCKED<br>
+      <span id="planetName">PLANET: OCEAN</span>
+    </div>
+    <video id="camera" class="camera" autoplay playsinline muted></video>
+    <div id="handStatus">Touch screen or enable hand control</div>
+  </div>
+
+  <h2>✧ Choose any planet</h2>
+  <div class="planets">
+    <button data-planet="0" class="active">🌊 Ocean</button>
+    <button data-planet="1">🔥 Lava</button>
+    <button data-planet="2">❄️ Ice</button>
+    <button data-planet="3">💜 Nebula</button>
+  </div>
+
+  <h2>✦ Universe controls</h2>
+  <div class="grid">
+    <button class="primary" id="handBtn">✋ Enable Hand Control</button>
+    <button id="autoBtn">⟳ Auto Rotation: ON</button>
+    <button id="particleBtn">✧ Energy Burst</button>
+    <button id="ringBtn">◉ Toggle Planet Ring</button>
+    <button id="zoomIn">＋ Zoom In</button>
+    <button id="zoomOut">－ Zoom Out</button>
+    <button id="colorBtn">◈ Change Atmosphere</button>
+    <button id="resetBtn">↻ Reset Universe</button>
+  </div>
+  <p>Touch: drag to rotate, pinch to zoom. Hand mode: move your index finger to rotate, pinch thumb and index finger to zoom, open palm for energy burst, fist to switch planet.</p>
+</section>
+
+<section>
+  <h2>◎ All effects — unlocked</h2>
+  <div class="grid">
+    <button data-effect="stars">✦ Starfield</button>
+    <button data-effect="nebula">☄ Nebula Glow</button>
+    <button data-effect="orbit">◉ Orbit Particles</button>
+    <button data-effect="pulse">ϟ Energy Pulse</button>
+  </div>
+  <h2>✧ Quick actions</h2>
+  <div class="grid">
+    <button id="moreStars">＋ More Stars</button>
+    <button id="lessStars">－ Fewer Stars</button>
+    <button id="fullscreen">⛶ Fullscreen</button>
+    <button id="saveBtn">▣ Save Settings</button>
+  </div>
+  <div style="margin-top:14px;padding:14px;border:1px solid #282b4d;border-radius:15px;background:#0c1022">
+    <b>WORLD TELEMETRY</b>
+    <p id="telemetry">World running • All features available.</p>
+    <small>No levels. No locks. Explore freely.</small>
+  </div>
+</section>
+</div>
+<footer>MICROVERSE • YOUR WORLD, YOUR RULES</footer>
+</main>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js"></script>
+
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+if(!window.THREE){$("status").textContent="3D library unavailable";return;}
+
+const renderer=new THREE.WebGLRenderer({
+ canvas:$("view"),antialias:true,alpha:true
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.7));
+renderer.setSize($("view").clientWidth,$("view").clientHeight,false);
+renderer.outputEncoding=THREE.sRGBEncoding;
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(45,1,.1,100);
+camera.position.set(0,0,5.2);
+
+scene.add(new THREE.AmbientLight(0x8194ff,1.4));
+const sun=new THREE.PointLight(0xffffff,2.5,30);
+sun.position.set(-3,3,5);scene.add(sun);
+
+const root=new THREE.Group();scene.add(root);
+const geometry=new THREE.SphereGeometry(1,64,48);
+
+const palettes=[
+ {name:"OCEAN",base:0x168fc9,land:0x32e0b0,glow:0x45dfff},
+ {name:"LAVA",base:0x9c2449,land:0xffa12e,glow:0xff542f},
+ {name:"ICE",base:0x6ca8ed,land:0xd9f8ff,glow:0x85dfff},
+ {name:"NEBULA",base:0x6942c9,land:0xf48bff,glow:0xc58aff}
+];
+let selected=0,ringOn=true,autoRotate=true,burstOn=true;
+let atmosphereIndex=0,starCount=500;
+let handOn=false,handCamera=null,handBusy=false;
+let lastX=null,lastPinch=null,lastGesture="",gestureAt=0;
+let toastTimer;
+
+function toast(s){
+ $("toast").textContent=s;$("toast").style.display="block";
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$("toast").style.display="none",2000);
+}
+
+// Procedural planet texture: no external image required.
+function makeTexture(index){
+ const c=document.createElement("canvas");
+ c.width=1024;c.height=512;
+ const x=c.getContext("2d"),p=palettes[index];
+ const g=x.createLinearGradient(0,0,1024,512);
+ g.addColorStop(0,"#"+p.base.toString(16).padStart(6,"0"));
+ g.addColorStop(1,"#11152d");x.fillStyle=g;x.fillRect(0,0,1024,512);
+ for(let i=0;i<85;i++){
+  let xx=Math.random()*1024,yy=Math.random()*512;
+  x.fillStyle=i%3?"#"+p.land.toString(16).padStart(6,"0"):"#d8ffff";
+  x.globalAlpha=.13+Math.random()*.38;
+  x.beginPath();x.ellipse(xx,yy,12+Math.random()*80,5+Math.random()*30,Math.random()*3,0,Math.PI*2);x.fill();
+ }
+ x.globalAlpha=1;
+ for(let i=0;i<220;i++){
+  x.fillStyle="#ffffff";x.globalAlpha=Math.random()*.25;
+  x.fillRect(Math.random()*1024,Math.random()*512,1+Math.random()*5,1);
+ }
+ x.globalAlpha=1;
+ const t=new THREE.CanvasTexture(c);
+ t.encoding=THREE.sRGBEncoding;return t;
+}
+const materials=palettes.map((p,i)=>new THREE.MeshStandardMaterial({
+ map:makeTexture(i),roughness:.82,metalness:.12
+}));
+const planet=new THREE.Mesh(geometry,materials[0]);root.add(planet);
+
+const ringGeo=new THREE.TorusGeometry(1.35,.018,8,160);
+const ringMat=new THREE.MeshBasicMaterial({color:0x78eaff});
+const ring=new THREE.Mesh(ringGeo,ringMat);
+ring.rotation.x=1.18;root.add(ring);
+
+const glow=new THREE.Mesh(
+ new THREE.SphereGeometry(1.08,48,32),
+ new THREE.MeshBasicMaterial({color:palettes[0].glow,transparent:true,opacity:.11,side:THREE.BackSide})
+);
+root.add(glow);
+
+let starGeo,starMat,stars;
+function createStars(){
+ if(stars){scene.remove(stars);starGeo.dispose();starMat.dispose();}
+ const positions=new Float32Array(starCount*3);
+ for(let i=0;i<starCount;i++){
+  positions[i*3]=(Math.random()-.5)*18;
+  positions[i*3+1]=(Math.random()-.5)*12;
+  positions[i*3+2]=-2-Math.random()*13;
+ }
+ starGeo=new THREE.BufferGeometry();
+ starGeo.setAttribute("position",new THREE.BufferAttribute(positions,3));
+ starMat=new THREE.PointsMaterial({color:0xb7d8ff,size:.025,sizeAttenuation:true});
+ stars=new THREE.Points(starGeo,starMat);scene.add(stars);
+}
+createStars();
+
+let burstGeo,burstMat,burst;
+function createBurst(){
+ if(burst){scene.remove(burst);burstGeo.dispose();burstMat.dispose();}
+ const n=450,positions=new Float32Array(n*3);
+ for(let i=0;i<n;i++){
+  const a=Math.random()*Math.PI*2;
+  const z=Math.random()*2-1;
+  const r=1.15+Math.random()*2.4;
+  const q=Math.sqrt(1-z*z);
+  positions[i*3]=Math.cos(a)*q*r;
+  positions[i*3+1]=z*r;
+  positions[i*3+2]=Math.sin(a)*q*r;
+ }
+ burstGeo=new THREE.BufferGeometry();
+ burstGeo.setAttribute("position",new THREE.BufferAttribute(positions,3));
+ burstMat=new THREE.PointsMaterial({color:palettes[selected].glow,size:.035,transparent:true,opacity:.9});
+ burst=new THREE.Points(burstGeo,burstMat);scene.add(burst);
+}
+createBurst();
+
+function selectPlanet(i){
+ selected=(i+palettes.length)%palettes.length;
+ planet.material=materials[selected];
+ glow.material.color.setHex(palettes[selected].glow);
+ ringMat.color.setHex(palettes[selected].glow);
+ burstMat.color.setHex(palettes[selected].glow);
+ $("planetName").textContent="PLANET: "+palettes[selected].name;
+ document.querySelectorAll("[data-planet]").forEach(b=>{
+  b.classList.toggle("active",Number(b.dataset.planet)===selected);
+ });
+}
+document.querySelectorAll("[data-planet]").forEach(b=>
+ b.addEventListener("click",()=>selectPlanet(Number(b.dataset.planet)))
+);
+
+function resize(){
+ const w=$("view").clientWidth,h=$("view").clientHeight;
+ if(!w||!h)return;
+ renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+window.addEventListener("resize",resize);
+
+let dragging=false,px=0,py=0;
+$("view").addEventListener("pointerdown",e=>{
+ dragging=true;px=e.clientX;py=e.clientY;
+ $("view").setPointerCapture(e.pointerId);
+});
+$("view").addEventListener("pointermove",e=>{
+ if(!dragging)return;
+ root.rotation.y+=(e.clientX-px)*.009;
+ root.rotation.x+=(e.clientY-py)*.009;
+ px=e.clientX;py=e.clientY;
+});
+$("view").addEventListener("pointerup",()=>dragging=false);
+$("view").addEventListener("pointercancel",()=>dragging=false);
+$("view").addEventListener("wheel",e=>{
+ camera.position.z=Math.max(2.4,Math.min(9,camera.position.z+e.deltaY*.006));
+},{passive:true});
+
+function energyBurst(){
+ burstOn=true;burst.visible=true;
+ burst.scale.setScalar(.85+Math.random()*.7);
+ toast("Energy burst activated ✦");
+}
+$("particleBtn").onclick=energyBurst;
+$("ringBtn").onclick=()=>{
+ ringOn=!ringOn;ring.visible=ringOn;
+ $("ringBtn").textContent=ringOn?"◉ Toggle Planet Ring":"◉ Show Planet Ring";
+};
+$("autoBtn").onclick=()=>{
+ autoRotate=!autoRotate;
+ $("autoBtn").textContent="⟳ Auto Rotation: "+(autoRotate?"ON":"OFF");
+};
+$("zoomIn").onclick=()=>camera.position.z=Math.max(2.4,camera.position.z-.5);
+$("zoomOut").onclick=()=>camera.position.z=Math.min(9,camera.position.z+.5);
+$("colorBtn").onclick=()=>{
+ atmosphereIndex=(atmosphereIndex+1)%palettes.length;
+ glow.material.color.setHex(palettes[atmosphereIndex].glow);
+ toast("Atmosphere changed");
+};
+document.querySelectorAll("[data-effect]").forEach(b=>{
+ b.onclick=()=>{
+  const e=b.dataset.effect;
+  if(e==="stars"){stars.visible=!stars.visible;b.classList.toggle("active",stars.visible);}
+  if(e==="nebula"){glow.visible=!glow.visible;b.classList.toggle("active",glow.visible);}
+  if(e==="orbit"){ringOn=!ringOn;ring.visible=ringOn;b.classList.toggle("active",ringOn);}
+  if(e==="pulse"){burstOn=!burstOn;burst.visible=burstOn;b.classList.toggle("active",burstOn);}
+ };
+});
+$("moreStars").onclick=()=>{starCount=Math.min(1800,starCount+200);createStars();};
+$("lessStars").onclick=()=>{starCount=Math.max(100,starCount-200);createStars();};
+$("fullscreen").onclick=async()=>{
+ try{
+  if(!document.fullscreenElement)await document.documentElement.requestFullscreen();
+  else await document.exitFullscreen();
+ }catch(e){toast("Fullscreen not supported here");}
+};
+$("saveBtn").onclick=()=>{
+ try{
+  localStorage.setItem("microverse-settings",JSON.stringify({
+   selected,ringOn,autoRotate,atmosphereIndex,starCount
+  }));
+  toast("Settings saved on this device");
+ }catch(e){toast("Unable to save settings");}
+};
+$("resetBtn").onclick=()=>{
+ root.rotation.set(0,0,0);camera.position.set(0,0,5.2);
+ selectPlanet(0);ringOn=true;ring.visible=true;
+ autoRotate=true;starCount=500;createStars();
+ toast("Universe reset — all worlds remain unlocked");
+};
+
+try{
+ const s=JSON.parse(localStorage.getItem("microverse-settings")||"null");
+ if(s){
+  if(Number.isInteger(s.selected))selectPlanet(s.selected);
+  if(typeof s.ringOn==="boolean"){ringOn=s.ringOn;ring.visible=ringOn;}
+  if(typeof s.autoRotate==="boolean")autoRotate=s.autoRotate;
+  if(Number.isInteger(s.atmosphereIndex))atmosphereIndex=(s.atmosphereIndex+4)%4;
+  if(Number.isInteger(s.starCount)){starCount=Math.max(100,Math.min(1800,s.starCount));createStars();}
+ }
+}catch(e){}
+
+// MediaPipe hand tracking.
+async function enableHands(){
+ if(handOn){await disableHands();return;}
+ if(!navigator.mediaDevices?.getUserMedia){
+  toast("Camera needs HTTPS and a supported browser");return;
+ }
+ if(!window.Hands||!window.Camera){
+  toast("Hand tracking library failed to load. Check internet.");return;
+ }
+ try{
+  handBusy=true;$("handBtn").disabled=true;
+  $("handStatus").textContent="Requesting camera permission...";
+  const video=$("camera");
+  const hands=new Hands({locateFile:file=>
+   "https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/"+file
+  });
+  hands.setOptions({
+   maxNumHands:1,modelComplexity:0,
+   minDetectionConfidence:.65,minTrackingConfidence:.6
+  });
+  hands.onResults(results=>{
+   if(!handOn)return;
+   const lm=results.multiHandLandmarks?.[0];
+   if(!lm){
+    $("handStatus").textContent="Show one hand to camera";
+    lastX=null;lastPinch=null;lastGesture="";return;
+   }
+   const index=lm[8],thumb=lm[4];
+   const wrist=lm[0];
+   const middle=lm[12],ringTip=lm[16],pinky=lm[20];
+   if(lastX!==null){
+    root.rotation.y+=(lastX-index.x)*3.1;
+    root.rotation.x+=(lastY-index.y)*2.5;
+   }
+   var lastY=index.y;
+   // Pinch distance controls camera zoom.
+   const dist=Math.hypot(index.x-thumb.x,index.y-thumb.y);
+   if(lastPinch!==null&&dist<.12){
+    camera.position.z=Math.max(2.4,Math.min(9,
+     camera.position.z+(lastPinch-dist)*8));
+   }
+   lastX=index.x;lastPinch=dist;
+   const extended=(tip,pip)=>tip.y<pip.y;
+   const open=extended(lm[8],lm[6])&&extended(middle,lm[10])
+    &&extended(ringTip,lm[14])&&extended(pinky,lm[18]);
+   const fist=!extended(lm[8],lm[6])&&!extended(middle,lm[10])
+    &&!extended(ringTip,lm[14])&&!extended(pinky,lm[18]);
+   const now=Date.now();
+   if(now-gestureAt>1400){
+    if(open&&lastGesture!=="open"){
+     energyBurst();lastGesture="open";gestureAt=now;
+    }else if(fist&&lastGesture!=="fist"){
+     selectPlanet(selected+1);toast("Next planet selected");
+     lastGesture="fist";gestureAt=now;
+    }else if(!open&&!fist){lastGesture="";}
+   }
+   $("handStatus").textContent=open?"Open palm: energy burst"
+    :fist?"Fist: next planet"
+    :dist<.12?"Pinch: zoom control":"Hand tracking active";
+  });
+  const cam=new Camera(video,{
+   onFrame:async()=>{if(handOn)await hands.send({image:video});},
+   width:320,height:240
+  });
+  handCamera=cam;handOn=true;video.style.display="block";
+  await cam.start();
+  $("handBtn").textContent="✋ Disable Hand Control";
+  $("status").textContent="● HAND TRACKING ON";
+  $("handStatus").textContent="Show one hand to control the world";
+ }catch(e){
+  handOn=false;
+  $("camera").style.display="none";
+  $("status").textContent="● 3D ENGINE READY";
+  toast("Camera unavailable. Allow camera permission and retry.");
+  try{if(handCamera)handCamera.stop();}catch(_){}
+ }finally{
+  handBusy=false;$("handBtn").disabled=false;
+ }
+}
+async function disableHands(){
+ handOn=false;
+ try{if(handCamera)handCamera.stop();}catch(e){}
+ const v=$("camera");
+ if(v.srcObject)v.srcObject.getTracks().forEach(t=>t.stop());
+ v.srcObject=null;v.style.display="none";
+ $("handBtn").textContent="✋ Enable Hand Control";
+ $("status").textContent="● 3D ENGINE READY";
+ $("handStatus").textContent="Touch screen or enable hand control";
+ lastX=null;lastPinch=null;
+}
+$("handBtn").onclick=enableHands;
+let lastY=0;
+
+function animate(){
+ requestAnimationFrame(animate);
+ if(autoRotate&&!dragging&&!handOn)root.rotation.y+=.0025;
+ planet.rotation.y+=.001;
+ ring.rotation.z+=.0015;
+ if(burstOn){burst.rotation.y+=.003;burst.rotation.x+=.001;}
+ stars.rotation.y+=.00008;
+ renderer.render(scene,camera);
+}
+resize();animate();
+})();
+</script>
+</body>
+</html>
